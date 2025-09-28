@@ -68,6 +68,7 @@ form.addEventListener('submit', async e => {
         icon: '<svg class="icon icon-x-circle"><use xlink:href="#icon-x-circle"></use></svg>',
         maxWidth: 900,
       });
+      form.reset();
       return;
     }
 
