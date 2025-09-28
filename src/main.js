@@ -22,6 +22,18 @@ if (!form) {
   console.error('Search form not found in DOM (expected #search-form).');
 }
 
+// Додаємо функцію для плавного скролу
+function scrollGallery() {
+  const firstCard = document.querySelector('.gallery li'); // перша картка
+  if (firstCard) {
+    const cardHeight = firstCard.getBoundingClientRect().height;
+    window.scrollBy({
+      top: cardHeight * 2, // прокручуємо на дві висоти картки
+      behavior: 'smooth', // плавна прокрутка
+    });
+  }
+}
+
 // Обробник сабміту (без async/await)
 form.addEventListener('submit', async e => {
   e.preventDefault();
@@ -61,6 +73,7 @@ form.addEventListener('submit', async e => {
 
     // Інакше — створюємо галерею
     createGallery(data.hits);
+    scrollGallery(); // прокручуємо після додавання нових карток
 
     if (currentPage * 15 < data.totalHits) {
       loadMoreBtn.classList.add('is-active');
@@ -104,6 +117,7 @@ loadMoreBtn.addEventListener('click', e => {
 
     getImagesByQuery(currentQuery, currentPage).then(data => {
       createGallery(data.hits);
+      scrollGallery(); // прокручуємо після додавання нових карток
     });
   } catch (error) {
     console.error('Fetch error:', error);
