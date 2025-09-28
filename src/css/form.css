@@ -24,6 +24,17 @@
   color: #fafafa;
   border: none;
 }
+
+#load-btn {
+  margin: 0 auto;
+  text-align: center;
+  display: none;
+}
+
+#load-btn.is-active {
+  display: block;
+}
+
 .input {
   width: 272px;
   height: 40px;

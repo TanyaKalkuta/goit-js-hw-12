@@ -75,3 +75,12 @@ export function hideLoader() {
   if (!loaderEl) return;
   loaderEl.classList.remove('is-active');
 }
+
+//Ця функція нічого не приймає, повинна додавати клас для відображення кнопки Load more. Нічого не повертає.
+export function showLoadMoreButton() {
+  loadMoreBtn.classList.add('is-active');
+}
+//  hideLoadMoreButton(). Ця функція нічого не приймає, повинна прибирати клас для відображення кнопки Load more. Нічого не повертає.
+export function hideLoadMoreButton() {
+  loadMoreBtn.classList.remove('is-active');
+}

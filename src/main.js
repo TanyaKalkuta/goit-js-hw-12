@@ -12,72 +12,111 @@ import {
 const form = document.querySelector('#search-form');
 const input = document.querySelector('input[name="search-text"]');
 const searchBtn = document.querySelector('#search-btn');
+const loadMoreBtn = document.querySelector('#load-btn');
+
+let currentQuery = ''; // — зберігає останній пошуковий запит.
+
+let currentPage = 1;
 
 if (!form) {
   console.error('Search form not found in DOM (expected #search-form).');
 }
 
 // Обробник сабміту (без async/await)
-form.addEventListener('submit', e => {
+form.addEventListener('submit', async e => {
   e.preventDefault();
+  try {
+    currentQuery = input.value.trim();
+    if (!currentQuery) {
+      iziToast.warning({ title: 'Увага', message: 'Введіть пошукове слово.' });
+      return;
+    }
 
-  const query = input.value.trim();
-  if (!query) {
-    iziToast.warning({ title: 'Увага', message: 'Введіть пошукове слово.' });
-    return;
-  }
+    // Очищаємо попередні результати
+    clearGallery();
 
-  // Очищаємо попередні результати
-  clearGallery();
+    currentPage = 1; // (обнуляєш, бо новий пошук).
 
-  // Показуємо лоадер
-  showLoader();
-  searchBtn.disabled = true;
+    // Показуємо лоадер
+    showLoader();
+    searchBtn.disabled = true;
 
-  // виконуємо запит (getImagesByQuery повертає response.data)
-  getImagesByQuery(query)
-    .then(images => {
-      // data — об'єкт відповіді Pixabey: { total, totalHits, hits: [...] }
+    // виконуємо запит (getImagesByQuery повертає response.data)
+    const data = await getImagesByQuery(currentQuery, currentPage);
+    // data — об'єкт відповіді Pixabey: { total, totalHits, hits: [...] }
 
-      if (!images || images.length === 0) {
-        iziToast.show({
-          message: `Sorry, there are no images matching your search query. Please try again!`,
-          backgroundColor: 'pink',
-          position: 'topRight',
-          close: false,
-          messageSize: '20',
-          timeout: 5000,
-          icon: '<svg class="icon icon-x-circle"><use xlink:href="#icon-x-circle"></use></svg>',
-          maxWidth: 900,
-        });
-        return;
-      }
-
-      // Інакше — створюємо галерею
-      createGallery(images);
-
-      // повідомлення про кількість знайдених
-      iziToast.success({
-        title: 'Готово',
-        message: `Знайдено ${images.length} зображень.`,
-      });
-    })
-    .catch(err => {
-      // показуємо помилку
-      console.error('Fetch error:', err);
-      iziToast.error({
-        title: 'Помилка',
-        message: 'Проблема при завантаженні зображень. Спробуйте пізніше.',
-        backgroundColor: 'red',
+    if (!data.hits || data.hits.length === 0) {
+      iziToast.show({
+        message: `Sorry, there are no images matching your search query. Please try again!`,
+        backgroundColor: 'pink',
         position: 'topRight',
         close: false,
-        messageSize: '30',
+        messageSize: '20',
         timeout: 5000,
+        icon: '<svg class="icon icon-x-circle"><use xlink:href="#icon-x-circle"></use></svg>',
+        maxWidth: 900,
       });
-    })
-    .finally(() => {
-      hideLoader();
-      searchBtn.disabled = false;
+      return;
+    }
+
+    // Інакше — створюємо галерею
+    createGallery(data.hits);
+
+    if (currentPage * 15 < data.totalHits) {
+      loadMoreBtn.classList.add('is-active');
+    } else {
+      loadMoreBtn.classList.remove('is-active');
+      iziToast.info({
+        title: 'Кінець',
+        message: 'Більше зображень немає.',
+      });
+    }
+
+    // повідомлення про кількість знайдених
+    iziToast.success({
+      title: 'Готово',
+      message: `Знайдено ${data.totalHits} зображень.`,
     });
+  } catch (err) {
+    // показуємо помилку
+    console.error('Fetch error:', err);
+    iziToast.error({
+      title: 'Помилка',
+      message: 'Проблема при завантаженні зображень. Спробуйте пізніше.',
+      backgroundColor: 'red',
+      position: 'topRight',
+      close: false,
+      messageSize: '30',
+      timeout: 5000,
+    });
+  } finally {
+    hideLoader();
+    searchBtn.disabled = false;
+  }
   form.reset();
+});
+
+loadMoreBtn.addEventListener('click', e => {
+  e.preventDefault();
+  currentPage += 1;
+  try {
+    showLoader();
+
+    getImagesByQuery(currentQuery, currentPage).then(data => {
+      createGallery(data.hits);
+    });
+  } catch (error) {
+    console.error('Fetch error:', error);
+    iziToast.error({
+      title: 'Помилка',
+      message: 'Проблема при завантаженні зображень. Спробуйте пізніше.',
+      backgroundColor: 'red',
+      position: 'topRight',
+      close: false,
+      messageSize: '30',
+      timeout: 5000,
+    });
+  } finally {
+    hideLoader();
+  }
 });
