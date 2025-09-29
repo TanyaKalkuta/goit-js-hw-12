@@ -4,6 +4,7 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 // DOM селектори (приклад)
 const galleryContainer = document.querySelector('#gallery');
 const loaderEl = document.querySelector('#loader');
+const loadMoreBtn = document.querySelector('#load-btn');
 
 const lightbox = new SimpleLightbox('#gallery a', {
   captionsData: 'alt',

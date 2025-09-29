@@ -7,6 +7,8 @@ import {
   clearGallery,
   showLoader,
   hideLoader,
+  showLoadMoreButton,
+  hideLoadMoreButton,
 } from './js/render-functions.js';
 
 const form = document.querySelector('#search-form');
@@ -46,7 +48,7 @@ form.addEventListener('submit', async e => {
 
     // Очищаємо попередні результати
     clearGallery();
-
+    hideLoadMoreButton();
     currentPage = 1; // (обнуляєш, бо новий пошук).
 
     // Показуємо лоадер
@@ -68,18 +70,18 @@ form.addEventListener('submit', async e => {
         icon: '<svg class="icon icon-x-circle"><use xlink:href="#icon-x-circle"></use></svg>',
         maxWidth: 900,
       });
+      hideLoadMoreButton();
       form.reset();
       return;
     }
 
     // Інакше — створюємо галерею
     createGallery(data.hits);
-    scrollGallery(); // прокручуємо після додавання нових карток
 
     if (currentPage * 15 < data.totalHits) {
-      loadMoreBtn.classList.add('is-active');
+      showLoadMoreButton();
     } else {
-      loadMoreBtn.classList.remove('is-active');
+      hideLoadMoreButton();
       iziToast.info({
         title: 'Кінець',
         message: 'Більше зображень немає.',
@@ -110,16 +112,34 @@ form.addEventListener('submit', async e => {
   form.reset();
 });
 
-loadMoreBtn.addEventListener('click', e => {
+loadMoreBtn.addEventListener('click', async e => {
   e.preventDefault();
   currentPage += 1;
   try {
+    // робимо кнопку неактивною під час завантаження
+    hideLoadMoreButton();
+    loadMoreBtn.disabled = true;
+    // показуємо лоадер
     showLoader();
 
-    getImagesByQuery(currentQuery, currentPage).then(data => {
-      createGallery(data.hits);
-      scrollGallery(); // прокручуємо після додавання нових карток
+    const data = await getImagesByQuery(currentQuery, currentPage);
+    // додаємо нові зображення
+    createGallery(data.hits);
+
+    // прокручуємо після додавання нових карток
+    requestAnimationFrame(() => {
+      scrollGallery();
     });
+
+    if (currentPage * 15 < data.totalHits) {
+      showLoadMoreButton();
+    } else {
+      hideLoadMoreButton();
+      iziToast.info({
+        title: 'Кінець',
+        message: 'Більше зображень немає.',
+      });
+    }
   } catch (error) {
     console.error('Fetch error:', error);
     iziToast.error({
@@ -133,5 +153,7 @@ loadMoreBtn.addEventListener('click', e => {
     });
   } finally {
     hideLoader();
+    // розблоковуємо кнопку (якщо вона видима, користувач зможе натиснути знову)
+    loadMoreBtn.disabled = false;
   }
 });

@@ -1,28 +1,32 @@
 .gallery {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* адаптив */
   gap: 24px;
-  max-width: 1440px;
-  height: auto;
   padding: 24px;
-  margin: auto;
-  justify-content: center;
-  align-items: center;
+  justify-items: center; /* вирівнює картки по центру */
 }
+
 .gallery-item {
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: calc(33.333% - 48px);
-  height: auto;
+  width: 100%;
+  max-width: 360px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid #808080;
 }
+
 .gallery-image {
   width: 100%;
-  height: auto;
-  object-fit: cover;
+  height: 152px;
+  object-fit: cover; /* зберігає пропорції та обрізає зайве */
+  display: block;
 }
+
 .stats {
-  /* max-height: 48px; */
+  box-sizing: border-box;
+  height: 48px;
   display: flex;
   justify-content: space-between;
   padding: 4px 20px;
